@@ -4,6 +4,14 @@ public class Utils {
 
     private static final String DOTS_COMMAS_REGEXP = "[.,]";
 
+    private static final Utils INSTANCE = new Utils();
+
+    private Utils(){}
+
+    public static Utils getInstance(){
+        return INSTANCE;
+    }
+
     public int convertToCents(String dollarsAndCents) {
         if (dollarsAndCents == null || dollarsAndCents.isEmpty()) {
             throw new IllegalArgumentException("Input string is empty or null");

@@ -10,6 +10,6 @@ import javax.validation.constraints.NotNull;
 public class Bank {
 
     @NotNull
-    private long Id;
+    private Long Id;
     private String name;
 }

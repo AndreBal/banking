@@ -16,6 +16,8 @@ public class AccountDAO {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AccountDAO.class);
 
+    private static final AccountDAO INSTANCE = new AccountDAO();
+
     private BankDAO bankDAO;
     private UserDAO userDAO;
     private static String SQL_INSERT = "INSERT INTO \"account\" (bank_id, amount, user_id, currency, start_date, end_date, is_interest_active)VALUES ( ?, ?, ?, ?, ?, ?, ?);";
@@ -25,30 +27,56 @@ public class AccountDAO {
     private static String SQL_UPDATE = "UPDATE \"account\" SET bank_id=?, amount=?, user_id=?, currency=?, start_date=?, end_date=?, is_interest_active=? WHERE id = ?";
     private static String SQL_DELETE = "DELETE FROM \"account\" WHERE id = ?";
 
-    private Connection connection;
-
-    public AccountDAO() throws SQLException {
-        this.connection = ConnectionProvider.getConnection();
-        this.bankDAO = new BankDAO(connection);
-        this.userDAO = new UserDAO(connection);
+    public static AccountDAO getInstance() {
+        return INSTANCE;
     }
 
-    public AccountDAO(Connection connection) throws SQLException {
-        this.connection = connection;
-        this.bankDAO = new BankDAO(connection);
-        this.userDAO = new UserDAO(connection);
+    private AccountDAO() {
+        this.bankDAO = BankDAO.getInstance();
+        this.userDAO = UserDAO.getInstance();
     }
+
 
     public void insertAccount(Account account) throws SQLException {
         String sql = SQL_INSERT;
-        try (PreparedStatement statement = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
-            statement.setLong(1, account.getBank().getId());
-            statement.setLong(2, account.getAmount());
-            statement.setLong(3, account.getUser().getId());
-            statement.setString(4, account.getCurrency().name());
-            statement.setDate(5, new java.sql.Date(account.getStartDate().getTime()));
-            statement.setDate(6, new java.sql.Date(account.getEndDate().getTime()));
-            statement.setBoolean(7, account.getIsInterestActive());
+        try (Connection connection = ConnectionProvider.getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+
+            if (account.getBank() != null) {
+                statement.setLong(1, account.getBank().getId());
+            }else{
+                statement.setNull(1,Types.INTEGER);
+            }
+            if (account.getAmount() != null) {
+                statement.setLong(2, account.getAmount());
+            }else{
+                statement.setNull(2,Types.INTEGER);
+            }
+            if (account.getUser() != null) {
+                statement.setLong(3, account.getUser().getId());
+            }else{
+                statement.setNull(3,Types.INTEGER);
+            }
+            if (account.getCurrency() != null) {
+                statement.setString(4, account.getCurrency().name());
+            }else{
+                statement.setNull(4,Types.VARCHAR);
+            }
+            if (account.getStartDate() != null) {
+                statement.setDate(5, new java.sql.Date(account.getStartDate().getTime()));
+            }else{
+                statement.setNull(5,Types.TIMESTAMP);
+            }
+            if (account.getEndDate() != null) {
+                statement.setDate(6, new java.sql.Date(account.getEndDate().getTime()));
+            }else{
+                statement.setNull(6,Types.TIMESTAMP);
+            }
+            if (account.getIsInterestActive() != null) {
+                statement.setBoolean(7, account.getIsInterestActive());
+            }else{
+                statement.setNull(7,Types.BOOLEAN);
+            }
             statement.executeUpdate();
 
             try (ResultSet generatedKeys = statement.getGeneratedKeys()) {
@@ -65,7 +93,8 @@ public class AccountDAO {
     public List<Account> getAllAccounts() throws SQLException {
         List<Account> accounts = new ArrayList<>();
         String sql = SQL_SELECT_ALL;
-        try (PreparedStatement statement = connection.prepareStatement(sql);
+        try (Connection connection = ConnectionProvider.getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql);
              ResultSet resultSet = statement.executeQuery()) {
             while (resultSet.next()) {
                 accounts.add(createAccountFromResultSet(resultSet));
@@ -77,7 +106,8 @@ public class AccountDAO {
     public List<Account> getAllAccountsWithInterest() throws SQLException {
         List<Account> accounts = new ArrayList<>();
         String sql = SQL_SELECT_WITH_INTEREST;
-        try (PreparedStatement statement = connection.prepareStatement(sql);
+        try (Connection connection = ConnectionProvider.getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql);
              ResultSet resultSet = statement.executeQuery()) {
             while (resultSet.next()) {
                 accounts.add(createAccountFromResultSet(resultSet));
@@ -88,7 +118,8 @@ public class AccountDAO {
 
     public Account getAccountById(long accountId) throws SQLException {
         String sql = SQL_SELECT_BY_ID;
-        try (PreparedStatement statement = connection.prepareStatement(sql)) {
+        try (Connection connection = ConnectionProvider.getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setLong(1, accountId);
             try (ResultSet resultSet = statement.executeQuery()) {
                 if (resultSet.next()) {
@@ -100,13 +131,14 @@ public class AccountDAO {
     }
 
     private Account createAccountFromResultSet(ResultSet resultSet) throws SQLException {
-        long id = resultSet.getLong("id");
-        long bankId = resultSet.getLong("bank_id");
-        long amount = resultSet.getLong("amount");
-        long userId = resultSet.getLong("user_id");
+        Long id = resultSet.getLong("id");
+        Long bankId = resultSet.getLong("bank_id");
+        Long amount = resultSet.getLong("amount");
+        Long userId = resultSet.getLong("user_id");
         String currencyStr = resultSet.getString("currency");
         Date startDate = resultSet.getDate("start_date");
         Date endDate = resultSet.getDate("end_date");
+        Boolean isInterestActive = resultSet.getBoolean("is_interest_active");
         Currency currency = Currency.valueOf(currencyStr);
         Bank bank = bankDAO.getBankById(bankId);
         User user = userDAO.getUserById(userId);
@@ -118,27 +150,63 @@ public class AccountDAO {
         account.setCurrency(currency);
         account.setStartDate(startDate);
         account.setEndDate(endDate);
+        account.setIsInterestActive(isInterestActive);
         return account;
     }
 
-    public void updateAccount(Account account) throws SQLException {
+    public void updateAccount(Account account, Connection... connections) throws SQLException {
         String sql = SQL_UPDATE;
+        boolean connectionIsExternal = connections.length > 0;
+        Connection connection = (connectionIsExternal) ? connections[0] : ConnectionProvider.getConnection();
         try (PreparedStatement statement = connection.prepareStatement(sql)) {
-            statement.setLong(1, account.getBank().getId());
-            statement.setLong(2, account.getAmount());
-            statement.setLong(3, account.getUser().getId());
-            statement.setString(4, account.getCurrency().name());
-            statement.setDate(5, new java.sql.Date(account.getStartDate().getTime()));
-            statement.setDate(6, new java.sql.Date(account.getEndDate().getTime()));
-            statement.setBoolean(7, account.getIsInterestActive());
+            if (account.getBank() != null) {
+                statement.setLong(1, account.getBank().getId());
+            }else{
+                statement.setNull(1,Types.INTEGER);
+            }
+            if (account.getAmount() != null) {
+                statement.setLong(2, account.getAmount());
+            }else{
+                statement.setNull(2,Types.INTEGER);
+            }
+            if (account.getUser() != null) {
+                statement.setLong(3, account.getUser().getId());
+            }else{
+                statement.setNull(3,Types.INTEGER);
+            }
+            if (account.getCurrency() != null) {
+                statement.setString(4, account.getCurrency().name());
+            }else{
+                statement.setNull(4,Types.VARCHAR);
+            }
+            if (account.getStartDate() != null) {
+                statement.setDate(5, new java.sql.Date(account.getStartDate().getTime()));
+            }else{
+                statement.setNull(5,Types.TIMESTAMP);
+            }
+            if (account.getEndDate() != null) {
+                statement.setDate(6, new java.sql.Date(account.getEndDate().getTime()));
+            }else{
+                statement.setNull(6,Types.TIMESTAMP);
+            }
+            if (account.getIsInterestActive() != null) {
+                statement.setBoolean(7, account.getIsInterestActive());
+            }else{
+                System.out.println("AGA!");
+                statement.setNull(7,Types.BOOLEAN);
+            }
             statement.setLong(8, account.getId());
             statement.executeUpdate();
+            if (!connectionIsExternal) {
+                connection.close();
+            }
         }
     }
 
     public void deleteAccount(long accountId) throws SQLException {
         String sql = SQL_DELETE;
-        try (PreparedStatement statement = connection.prepareStatement(sql)) {
+        try (Connection connection = ConnectionProvider.getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setLong(1, accountId);
             statement.executeUpdate();
         }

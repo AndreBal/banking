@@ -12,9 +12,9 @@ import java.util.Date;
 public class Account {
 
     @NotNull
-    private long Id;
+    private Long Id;
     private Bank bank;
-    private long amount;
+    private Long amount;
     private User user;
     private Currency currency;
     private Date startDate;

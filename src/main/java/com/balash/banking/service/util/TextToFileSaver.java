@@ -12,6 +12,14 @@ public class TextToFileSaver {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(TextToFileSaver.class);
 
+    private static final TextToFileSaver INSTANCE = new TextToFileSaver();
+
+    private TextToFileSaver(){}
+
+    public static TextToFileSaver getInstance(){
+        return INSTANCE;
+    }
+
     public void saveToTXTFile(String fileName, String textToSave){
 
         File folder = new File("check");

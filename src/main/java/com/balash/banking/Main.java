@@ -17,9 +17,9 @@ import java.util.concurrent.TimeUnit;
 
 public class Main {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(BankingServer.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(Main.class);
 
-    public static void main(String[] args){
+    public static void main(String[] args) {
 
         URI baseUri = UriBuilder.fromUri("http://0.0.0.0/").port(8080).build();
         ResourceConfig config = new ResourceConfig(BankingServer.class);
@@ -36,11 +36,12 @@ public class Main {
                 } catch (SQLException e) {
                     LOGGER.error("Interest Counter encountered error during scheduled runtime with message "+e.getMessage(),e);
                 }
-            }, 0, 60, TimeUnit.SECONDS);
+            }, 0, 30, TimeUnit.SECONDS);
             LOGGER.debug("Interest Counter scheduled successfully");
         }catch (SQLException e){
             LOGGER.error("Interest Counter error during startup with message "+e.getMessage(),e);
         }
+
     }
 
 }

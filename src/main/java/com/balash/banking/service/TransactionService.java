@@ -29,12 +29,12 @@ public class TransactionService {
     private TransactionDAO transactionDAO;
     private AccountDAO accountDAO;
 
-    public TransactionService() throws SQLException {
-        this.transactionDAO = new TransactionDAO();
-        this.accountDAO = transactionDAO.getAccountDAO();
-        this.utils = new Utils();
-        this.receiptTextFormatter = new ReceiptTextFormatter();
-        this.textToFileSaver = new TextToFileSaver();
+    public TransactionService(){
+        this.transactionDAO = TransactionDAO.getInstance();
+        this.accountDAO = AccountDAO.getInstance();
+        this.utils = Utils.getInstance();
+        this.receiptTextFormatter = ReceiptTextFormatter.getInstance();
+        this.textToFileSaver = TextToFileSaver.getInstance();
     }
 
     public String transferMoney(String donorAccountIdStr, String recipientAccountIdStr, String amountString){

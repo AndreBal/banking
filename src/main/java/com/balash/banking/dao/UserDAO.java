@@ -13,6 +13,7 @@ public class UserDAO {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(UserDAO.class);
 
+    private static final UserDAO INSTANCE = new UserDAO();
 
     private static String SQL_INSERT = "INSERT INTO \"user\" (username, email) VALUES (?, ?)";
     private static String SQL_SELECT_ALL = "SELECT * FROM \"user\"";
@@ -20,18 +21,16 @@ public class UserDAO {
     private static String SQL_UPDATE = "UPDATE \"user\" SET username = ?, email = ? WHERE id = ?";
     private static String SQL_DELETE = "DELETE FROM \"user\" WHERE id = ?";
 
-    private Connection connection;
-
-    public UserDAO() throws SQLException {
-        this.connection = ConnectionProvider.getConnection();
+    public static UserDAO getInstance(){
+        return INSTANCE;
     }
 
-    public UserDAO(Connection connection) throws SQLException {
-        this.connection = connection;
+    private UserDAO(){
     }
 
     public void insertUser(User user) throws SQLException {
-        try (PreparedStatement statement = connection.prepareStatement(SQL_INSERT, Statement.RETURN_GENERATED_KEYS)) {
+        try (Connection connection = ConnectionProvider.getConnection();
+                PreparedStatement statement = connection.prepareStatement(SQL_INSERT, Statement.RETURN_GENERATED_KEYS)) {
             statement.setString(1, user.getUsername());
             statement.setString(2, user.getEmail());
             statement.executeUpdate();
@@ -48,7 +47,8 @@ public class UserDAO {
 
     public List<User> getAllUsers() throws SQLException {
         List<User> users = new ArrayList<>();
-        try (PreparedStatement statement = connection.prepareStatement(SQL_SELECT_ALL);
+        try (Connection connection = ConnectionProvider.getConnection();
+                PreparedStatement statement = connection.prepareStatement(SQL_SELECT_ALL);
              ResultSet resultSet = statement.executeQuery()) {
 
             while (resultSet.next()) {
@@ -65,7 +65,8 @@ public class UserDAO {
     }
 
     public User getUserById(long id) throws SQLException {
-        try (PreparedStatement statement = connection.prepareStatement(SQL_SELECT_BY_ID)) {
+        try (Connection connection = ConnectionProvider.getConnection();
+                PreparedStatement statement = connection.prepareStatement(SQL_SELECT_BY_ID)) {
             statement.setLong(1, id);
             try (ResultSet resultSet = statement.executeQuery()) {
                 if (resultSet.next()) {
@@ -82,7 +83,8 @@ public class UserDAO {
     }
 
     public void updateUser(User user) throws SQLException {
-        try (PreparedStatement statement = connection.prepareStatement(SQL_UPDATE)) {
+        try (Connection connection = ConnectionProvider.getConnection();
+             PreparedStatement statement = connection.prepareStatement(SQL_UPDATE)) {
             statement.setString(1, user.getUsername());
             statement.setString(2, user.getEmail());
             statement.setLong(3, user.getId());
@@ -91,7 +93,8 @@ public class UserDAO {
     }
 
     public void deleteUser(long id) throws SQLException {
-        try (PreparedStatement statement = connection.prepareStatement(SQL_DELETE)) {
+        try (Connection connection = ConnectionProvider.getConnection();
+             PreparedStatement statement = connection.prepareStatement(SQL_DELETE)) {
             statement.setLong(1, id);
             statement.executeUpdate();
         }

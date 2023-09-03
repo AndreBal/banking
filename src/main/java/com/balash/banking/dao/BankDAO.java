@@ -11,23 +11,25 @@ public class BankDAO {
 
     private Connection connection;
 
+    private static final BankDAO INSTANCE = new BankDAO();
+
     private static String SQL_INSERT = "INSERT INTO \"bank\" (name) VALUES (?)";
     private static String SQL_SELECT_ALL = "SELECT * FROM \"bank\"";
     private static String SQL_SELECT_BY_ID = "SELECT name FROM \"bank\" WHERE id = ?";
     private static String SQL_UPDATE = "UPDATE \"bank\"  SET name = ? WHERE id = ?";
     private static String SQL_DELETE = "DELETE FROM \"bank\" WHERE id = ?";
 
-    public BankDAO() throws SQLException {
-        this.connection = ConnectionProvider.getConnection();
+    public static BankDAO getInstance(){
+        return INSTANCE;
     }
 
-    public BankDAO(Connection connection) throws SQLException {
-        this.connection = connection;
+    private BankDAO(){
     }
 
     public void insertBank(Bank bank) throws SQLException {
         String sql = SQL_INSERT;
-        try (PreparedStatement statement = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+        try (Connection connection = ConnectionProvider.getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             statement.setString(1, bank.getName());
             statement.executeUpdate();
 
@@ -45,7 +47,8 @@ public class BankDAO {
     public List<Bank> getAllBanks() throws SQLException {
         List<Bank> banks = new ArrayList<>();
         String sql = SQL_SELECT_ALL;
-        try (PreparedStatement statement = connection.prepareStatement(sql);
+        try (Connection connection = ConnectionProvider.getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql);
              ResultSet resultSet = statement.executeQuery()) {
             while (resultSet.next()) {
                 long id = resultSet.getLong("id");
@@ -61,7 +64,8 @@ public class BankDAO {
 
     public Bank getBankById(long bankId) throws SQLException {
         String sql = SQL_SELECT_BY_ID;
-        try (PreparedStatement statement = connection.prepareStatement(sql)) {
+        try (Connection connection = ConnectionProvider.getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setLong(1, bankId);
             try (ResultSet resultSet = statement.executeQuery()) {
                 if (resultSet.next()) {
@@ -78,7 +82,8 @@ public class BankDAO {
 
     public void updateBank(Bank bank) throws SQLException {
         String sql = SQL_UPDATE;
-        try (PreparedStatement statement = connection.prepareStatement(sql)) {
+        try (Connection connection = ConnectionProvider.getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setString(1, bank.getName());
             statement.setLong(2, bank.getId());
             statement.executeUpdate();
@@ -87,7 +92,8 @@ public class BankDAO {
 
     public void deleteBank(long bankId) throws SQLException {
         String sql = SQL_DELETE;
-        try (PreparedStatement statement = connection.prepareStatement(sql)) {
+        try (Connection connection = ConnectionProvider.getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setLong(1, bankId);
             statement.executeUpdate();
         }

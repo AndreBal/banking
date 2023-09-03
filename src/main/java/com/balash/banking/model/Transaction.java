@@ -10,8 +10,8 @@ import java.util.Date;
 @ToString
 public class Transaction {
 
-    private long Id;
-    private long amount;
+    private Long Id;
+    private Long amount;
     private TransactionType transactionType;
     private Date transactionDate;
     private Account donorAccount;

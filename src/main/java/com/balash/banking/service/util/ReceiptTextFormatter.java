@@ -6,12 +6,16 @@ import java.text.SimpleDateFormat;
 
 public class ReceiptTextFormatter {
 
-    private Utils utils;
+    private Utils utils = Utils.getInstance();
     private final static SimpleDateFormat DATE_FORMATTER = new SimpleDateFormat("yyyy-MM-dd");
     private final static SimpleDateFormat TIME_FORMATTER = new SimpleDateFormat("HH:mm:ss");
 
-    public ReceiptTextFormatter(){
-        this.utils = new Utils();
+    private static final ReceiptTextFormatter INSTANCE = new ReceiptTextFormatter();
+
+    private ReceiptTextFormatter(){}
+
+    public static ReceiptTextFormatter getInstance(){
+        return INSTANCE;
     }
 
     public String TransactionReceipt(Transaction transaction){
@@ -45,7 +49,6 @@ public class ReceiptTextFormatter {
         }
 
         receipt.append("----------------------------------------------\n");
-        System.out.println(receipt);
         return receipt.toString();
     }
 
