@@ -125,7 +125,7 @@ public class TransactionDAO {
         }
     }
 
-    public synchronized Transaction transferMoney(Account donorAccount, Account recipientAccount, long amount) {
+    public synchronized Transaction transferMoney(Account donorAccount, Account recipientAccount, long amount) throws SQLException {
         try {
             connection.setAutoCommit(false);
             donorAccount.setAmount(donorAccount.getAmount() - amount);
@@ -149,12 +149,8 @@ public class TransactionDAO {
                 LOGGER.error("rollbackException", rollbackException);
             }
         } finally {
-            try {
-                connection.setAutoCommit(true);
-                connection.close();
-            } catch (SQLException e) {
-                LOGGER.error("Exception during connection.setAutoCommit(true)", e);
-            }
+            connection.setAutoCommit(true);
+            connection.close();
         }
         return null;
     }
@@ -167,6 +163,19 @@ public class TransactionDAO {
         transaction.setTransactionDate(new Date());
         transaction.setTransactionType(TransactionType.DEPOSIT);
         transaction.setRecipientAccount(recipientAccount);
+        insertTransaction(transaction);
+        connection.close();
+        return transaction;
+    }
+
+    public synchronized Transaction withdrawMoney(Account donorAccount, long amount) throws SQLException {
+        donorAccount.setAmount(donorAccount.getAmount() - amount);
+        accountDAO.updateAccount(donorAccount);
+        Transaction transaction = new Transaction();
+        transaction.setAmount(amount);
+        transaction.setTransactionDate(new Date());
+        transaction.setTransactionType(TransactionType.WITHDRAWAL);
+        transaction.setDonorAccount(donorAccount);
         insertTransaction(transaction);
         connection.close();
         return transaction;

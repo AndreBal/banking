@@ -68,7 +68,13 @@ public class TransactionService {
         if(donorAccount.getAmount() < amount){
             return INSUFFICIENT_FUNDS_MESSAGE;
         }
-        Transaction transaction = transactionDAO.transferMoney(donorAccount,recipientAccount,amount);
+        Transaction transaction = null;
+        try {
+            transaction = transactionDAO.transferMoney(donorAccount,recipientAccount,amount);
+        } catch (SQLException e) {
+            LOGGER.error(e.getMessage(),e);
+            return TRANSFER_ERROR_MESSAGE;
+        }
         if(transaction != null){
             String receipt = receiptTextFormatter.TransactionReceipt(transaction);
             textToFileSaver.saveToTXTFile(RECEIPT+transaction.getId(),receipt);
@@ -113,5 +119,45 @@ public class TransactionService {
             return receipt;
         }
         return DEPOSIT_ERROR_MESSAGE;
+    }
+
+    public String withdrawMoney(String donorAccountIdStr, String amountString){
+        long donorAccountId ;
+        try {
+            donorAccountId = Long.parseLong(donorAccountIdStr);
+        }catch (Exception e){
+            LOGGER.error(e.getMessage()+" for donorAccountId "+donorAccountIdStr);
+            return INCORRECT_ACCOUNT_FORMAT_MESSAGE;
+        }
+        long amount;
+        try {
+            amount  = utils.convertToCents(amountString);
+        }catch (Exception e){
+            LOGGER.error(e.getMessage()+" for amountString "+amountString);
+            return INCORRECT_AMOUNT_FORMAT_MESSAGE;
+        }
+        Account donorAccount;
+        try {
+            donorAccount = accountDAO.getAccountById(donorAccountId);
+        } catch (SQLException e) {
+            LOGGER.error("An sqlexception occurred when attempting to extract account with id "+donorAccountId,e);
+            return SQLEXCEPTION_ERROR_MESSAGE;
+        }
+        if(donorAccount.getAmount() < amount){
+            return INSUFFICIENT_FUNDS_MESSAGE;
+        }
+        Transaction transaction = null;
+        try {
+            transaction = transactionDAO.withdrawMoney(donorAccount,amount);
+        } catch (SQLException e) {
+            LOGGER.error(e.getMessage(),e);
+            return TRANSFER_ERROR_MESSAGE;
+        }
+        if(transaction != null){
+            String receipt = receiptTextFormatter.TransactionReceipt(transaction);
+            textToFileSaver.saveToTXTFile(RECEIPT+transaction.getId(),receipt);
+            return receipt;
+        }
+        return TRANSFER_ERROR_MESSAGE;
     }
 }

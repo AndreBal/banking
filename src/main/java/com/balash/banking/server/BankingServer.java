@@ -64,12 +64,7 @@ public class BankingServer{
         try {
             TransactionService transactionService = getTransactionService();
             result = transactionService.transferMoney(donor, recipient, amount);
-            //byte[] utf8Bytes = result.getBytes(StandardCharsets.UTF_8);
-            //String utf8String = new String(utf8Bytes);
-            Response rs = Response.ok().encoding("utf-8")
-                    .entity(result).build();
-            //System.out.println(utf8String);
-            return rs;
+            return Response.ok().encoding("utf-8").entity(result).build();
         } catch (Exception e) {
             LOGGER.error(e.getMessage(), e);
         }
@@ -84,9 +79,21 @@ public class BankingServer{
         try {
             TransactionService transactionService = getTransactionService();
             result = transactionService.depositMoney(recipient, amount);
-            byte[] utf8Bytes = result.getBytes(StandardCharsets.UTF_8);
-            String utf8String = new String(utf8Bytes);
-            System.out.println(utf8String);
+            return Response.ok().encoding("utf-8").entity(result).build();
+        } catch (Exception e) {
+            LOGGER.error(e.getMessage(), e);
+        }
+        return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(result).build();
+    }
+
+    @Path("/withdraw/{donor}/{amount}")
+    @PUT
+    @Produces(MediaType.TEXT_PLAIN+"; charset=utf-8")
+    public Response withdrawal(@PathParam("donor") String donor,@PathParam("amount") String amount) {
+        String result = UNKNOWN_ERROR;
+        try {
+            TransactionService transactionService = getTransactionService();
+            result = transactionService.withdrawMoney(donor, amount);
             return Response.ok().encoding("utf-8").entity(result).build();
         } catch (Exception e) {
             LOGGER.error(e.getMessage(), e);
