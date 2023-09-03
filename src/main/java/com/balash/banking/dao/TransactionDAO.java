@@ -47,8 +47,18 @@ public class TransactionDAO {
             statement.setDouble(1, transaction.getAmount());
             statement.setString(2, transaction.getTransactionType().name());
             statement.setDate(3, new java.sql.Date(transaction.getTransactionDate().getTime()));
-            statement.setLong(4, transaction.getDonorAccount().getId());
-            statement.setLong(5, transaction.getRecipientAccount().getId());
+            Account donorAcc = transaction.getDonorAccount();
+            if (donorAcc == null) {
+                statement.setNull(4, Types.INTEGER);
+            } else {
+                statement.setLong(4, donorAcc.getId());
+            }
+            Account recipientAcc = transaction.getRecipientAccount();
+            if (recipientAcc == null) {
+                statement.setNull(5, Types.INTEGER);
+            } else {
+                statement.setLong(5, recipientAcc.getId());
+            }
             statement.executeUpdate();
 
             try (ResultSet generatedKeys = statement.getGeneratedKeys()) {
@@ -122,7 +132,6 @@ public class TransactionDAO {
             accountDAO.updateAccount(donorAccount);
             recipientAccount.setAmount(recipientAccount.getAmount() + amount);
             accountDAO.updateAccount(recipientAccount);
-            LOGGER.error("accounts updated");
             Transaction transaction = new Transaction();
             transaction.setAmount(amount);
             transaction.setTransactionDate(new Date());
@@ -133,7 +142,7 @@ public class TransactionDAO {
             connection.commit();
             return transaction;
         } catch (SQLException e) {
-            LOGGER.error(e.getMessage(),e);
+            LOGGER.error(e.getMessage(), e);
             try {
                 connection.rollback();
             } catch (SQLException rollbackException) {
@@ -148,5 +157,18 @@ public class TransactionDAO {
             }
         }
         return null;
+    }
+
+    public synchronized Transaction depositMoney(Account recipientAccount, long amount) throws SQLException {
+        recipientAccount.setAmount(recipientAccount.getAmount() + amount);
+        accountDAO.updateAccount(recipientAccount);
+        Transaction transaction = new Transaction();
+        transaction.setAmount(amount);
+        transaction.setTransactionDate(new Date());
+        transaction.setTransactionType(TransactionType.DEPOSIT);
+        transaction.setRecipientAccount(recipientAccount);
+        insertTransaction(transaction);
+        connection.close();
+        return transaction;
     }
 }

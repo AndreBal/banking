@@ -18,6 +18,7 @@ public class TransactionService {
     private static final String INCORRECT_AMOUNT_FORMAT_MESSAGE = "Incorrect amount format";
     private static final String SQLEXCEPTION_ERROR_MESSAGE = "An error occurred while trying to connect to the database";
     private static final String TRANSFER_ERROR_MESSAGE = "An error occurred while trying to transfer money. The operation was not completed";
+    private static final String DEPOSIT_ERROR_MESSAGE = "An error occurred while trying to deposit money. The operation was not completed";
     private static final String INSUFFICIENT_FUNDS_MESSAGE = "Insufficient funds to perform this operation";
     private static final String RECEIPT = "receipt ";
     private static final Logger LOGGER = LoggerFactory.getLogger(TransactionService.class);
@@ -43,7 +44,7 @@ public class TransactionService {
             donorAccountId = Long.parseLong(donorAccountIdStr);
             recipientAccountId = Long.parseLong(recipientAccountIdStr);
         }catch (Exception e){
-            LOGGER.error(e.getMessage()+" for donorAccountId "+donorAccountIdStr+" and recipientAccountId"+recipientAccountIdStr);
+            LOGGER.error(e.getMessage()+" for donorAccountId "+donorAccountIdStr+" and recipientAccountId "+recipientAccountIdStr);
             return INCORRECT_ACCOUNT_FORMAT_MESSAGE;
         }
         long amount;
@@ -74,5 +75,43 @@ public class TransactionService {
             return receipt;
         }
         return TRANSFER_ERROR_MESSAGE;
+    }
+
+    public String depositMoney(String recipientAccountIdStr, String amountString){
+        long recipientAccountId;
+        try {
+            recipientAccountId = Long.parseLong(recipientAccountIdStr);
+        }catch (Exception e){
+            LOGGER.error(e.getMessage()+" and recipientAccountId "+recipientAccountIdStr);
+            return INCORRECT_ACCOUNT_FORMAT_MESSAGE;
+        }
+        long amount;
+        try {
+            amount  = utils.convertToCents(amountString);
+        }catch (Exception e){
+            LOGGER.error(e.getMessage()+" for amountString "+amountString);
+            return INCORRECT_AMOUNT_FORMAT_MESSAGE;
+        }
+
+        Account recipientAccount;
+        try {
+            recipientAccount = accountDAO.getAccountById(recipientAccountId);
+        } catch (SQLException e) {
+            LOGGER.error("An sqlexception occurred when attempting to extract account with id "+recipientAccountId,e);
+            return SQLEXCEPTION_ERROR_MESSAGE;
+        }
+        Transaction transaction = null;
+        try {
+            transaction = transactionDAO.depositMoney(recipientAccount, amount);
+        }catch (SQLException e){
+            LOGGER.error(e.getMessage(),e);
+            return DEPOSIT_ERROR_MESSAGE;
+        }
+        if(transaction != null){
+            String receipt = receiptTextFormatter.TransactionReceipt(transaction);
+            textToFileSaver.saveToTXTFile(RECEIPT+transaction.getId(),receipt);
+            return receipt;
+        }
+        return DEPOSIT_ERROR_MESSAGE;
     }
 }

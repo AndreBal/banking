@@ -9,10 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
+import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.nio.charset.StandardCharsets;
@@ -60,19 +57,37 @@ public class BankingServer{
     }
 
     @Path("/transfer/{donor}/{recipient}/{amount}")
-    @GET
+    @PUT
     @Produces(MediaType.TEXT_PLAIN+"; charset=utf-8")
     public Response transfer(@PathParam("donor") String donor,@PathParam("recipient") String recipient,@PathParam("amount") String amount) {
         String result = UNKNOWN_ERROR;
         try {
             TransactionService transactionService = getTransactionService();
             result = transactionService.transferMoney(donor, recipient, amount);
-            byte[] utf8Bytes = result.getBytes(StandardCharsets.UTF_8);
-            String utf8String = new String(utf8Bytes);
+            //byte[] utf8Bytes = result.getBytes(StandardCharsets.UTF_8);
+            //String utf8String = new String(utf8Bytes);
             Response rs = Response.ok().encoding("utf-8")
                     .entity(result).build();
-            System.out.println(utf8String);
+            //System.out.println(utf8String);
             return rs;
+        } catch (Exception e) {
+            LOGGER.error(e.getMessage(), e);
+        }
+        return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(result).build();
+    }
+
+    @Path("/deposit/{recipient}/{amount}")
+    @PUT
+    @Produces(MediaType.TEXT_PLAIN+"; charset=utf-8")
+    public Response deposit(@PathParam("recipient") String recipient,@PathParam("amount") String amount) {
+        String result = UNKNOWN_ERROR;
+        try {
+            TransactionService transactionService = getTransactionService();
+            result = transactionService.depositMoney(recipient, amount);
+            byte[] utf8Bytes = result.getBytes(StandardCharsets.UTF_8);
+            String utf8String = new String(utf8Bytes);
+            System.out.println(utf8String);
+            return Response.ok().encoding("utf-8").entity(result).build();
         } catch (Exception e) {
             LOGGER.error(e.getMessage(), e);
         }

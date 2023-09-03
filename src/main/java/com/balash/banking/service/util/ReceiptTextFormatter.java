@@ -24,11 +24,26 @@ public class ReceiptTextFormatter {
         receipt.append(String.format("| Чек: %37s |\n", transaction.getId()));
         receipt.append(String.format("| %s %31s |\n",dateAsString,timeAsString));
         receipt.append(String.format("| Тип транзакции: %26s |\n", transaction.getTransactionType().getRussianTranslation()));
-        receipt.append(String.format("| Банк отправителя: %24s |\n", transaction.getDonorAccount().getBank().getName()));
-        receipt.append(String.format("| Банк получателя: %25s |\n", transaction.getRecipientAccount().getBank().getName()));
-        receipt.append(String.format("| Счёт отправителя: %24s |\n", transaction.getDonorAccount().getId()));
-        receipt.append(String.format("| Счёт получателя: %25s |\n", transaction.getRecipientAccount().getId()));
-        receipt.append(String.format("| Сумма: %35s |\n", moneyString+" "+transaction.getDonorAccount().getCurrency()));
+        switch (transaction.getTransactionType()) {
+            case TRANSFER:
+                receipt.append(String.format("| Банк отправителя: %24s |\n", transaction.getDonorAccount().getBank().getName()));
+                receipt.append(String.format("| Банк получателя: %25s |\n", transaction.getRecipientAccount().getBank().getName()));
+                receipt.append(String.format("| Счёт отправителя: %24s |\n", transaction.getDonorAccount().getId()));
+                receipt.append(String.format("| Счёт получателя: %25s |\n", transaction.getRecipientAccount().getId()));
+                receipt.append(String.format("| Сумма: %35s |\n", moneyString+" "+transaction.getDonorAccount().getCurrency()));
+                break;
+            case DEPOSIT:
+                receipt.append(String.format("| Банк зачисления: %25s |\n", transaction.getRecipientAccount().getBank().getName()));
+                receipt.append(String.format("| Счёт зачисления: %25s |\n", transaction.getRecipientAccount().getId()));
+                receipt.append(String.format("| Сумма: %35s |\n", moneyString+" "+transaction.getRecipientAccount().getCurrency()));
+                break;
+            case WITHDRAWAL:
+                receipt.append(String.format("| Банк снятия: %29s |\n", transaction.getDonorAccount().getBank().getName()));
+                receipt.append(String.format("| Счёт снятия: %29s |\n", transaction.getDonorAccount().getId()));
+                receipt.append(String.format("| Сумма: %35s |\n", moneyString+" "+transaction.getDonorAccount().getCurrency()));
+                break;
+        }
+
         receipt.append("----------------------------------------------\n");
         System.out.println(receipt);
         return receipt.toString();
