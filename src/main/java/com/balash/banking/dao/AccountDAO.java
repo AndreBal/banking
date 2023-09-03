@@ -18,10 +18,11 @@ public class AccountDAO {
 
     private BankDAO bankDAO;
     private UserDAO userDAO;
-    private static String SQL_INSERT = "INSERT INTO \"account\" (bank_id, amount, user_id, currency, start_date, end_date)VALUES ( ?, ?, ?, ?, ?, ?);";
+    private static String SQL_INSERT = "INSERT INTO \"account\" (bank_id, amount, user_id, currency, start_date, end_date, is_interest_active)VALUES ( ?, ?, ?, ?, ?, ?, ?);";
     private static String SQL_SELECT_ALL = "SELECT * FROM \"account\"";
+    private static String SQL_SELECT_WITH_INTEREST = SQL_SELECT_ALL + " WHERE is_interest_active = true;";
     private static String SQL_SELECT_BY_ID = SQL_SELECT_ALL + " WHERE id = ?";
-    private static String SQL_UPDATE = "UPDATE \"account\" SET bank_id=?, amount=?, user_id=?, currency=?, start_date=?, end_date=? WHERE id = ?";
+    private static String SQL_UPDATE = "UPDATE \"account\" SET bank_id=?, amount=?, user_id=?, currency=?, start_date=?, end_date=?, is_interest_active=? WHERE id = ?";
     private static String SQL_DELETE = "DELETE FROM \"account\" WHERE id = ?";
 
     private Connection connection;
@@ -47,6 +48,7 @@ public class AccountDAO {
             statement.setString(4, account.getCurrency().name());
             statement.setDate(5, new java.sql.Date(account.getStartDate().getTime()));
             statement.setDate(6, new java.sql.Date(account.getEndDate().getTime()));
+            statement.setBoolean(7, account.getIsInterestActive());
             statement.executeUpdate();
 
             try (ResultSet generatedKeys = statement.getGeneratedKeys()) {
@@ -63,6 +65,18 @@ public class AccountDAO {
     public List<Account> getAllAccounts() throws SQLException {
         List<Account> accounts = new ArrayList<>();
         String sql = SQL_SELECT_ALL;
+        try (PreparedStatement statement = connection.prepareStatement(sql);
+             ResultSet resultSet = statement.executeQuery()) {
+            while (resultSet.next()) {
+                accounts.add(createAccountFromResultSet(resultSet));
+            }
+        }
+        return accounts;
+    }
+
+    public List<Account> getAllAccountsWithInterest() throws SQLException {
+        List<Account> accounts = new ArrayList<>();
+        String sql = SQL_SELECT_WITH_INTEREST;
         try (PreparedStatement statement = connection.prepareStatement(sql);
              ResultSet resultSet = statement.executeQuery()) {
             while (resultSet.next()) {
@@ -116,7 +130,8 @@ public class AccountDAO {
             statement.setString(4, account.getCurrency().name());
             statement.setDate(5, new java.sql.Date(account.getStartDate().getTime()));
             statement.setDate(6, new java.sql.Date(account.getEndDate().getTime()));
-            statement.setLong(7, account.getId());
+            statement.setBoolean(7, account.getIsInterestActive());
+            statement.setLong(8, account.getId());
             statement.executeUpdate();
         }
     }
@@ -128,6 +143,5 @@ public class AccountDAO {
             statement.executeUpdate();
         }
     }
-
 
 }

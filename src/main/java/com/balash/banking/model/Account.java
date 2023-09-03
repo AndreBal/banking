@@ -19,4 +19,5 @@ public class Account {
     private Currency currency;
     private Date startDate;
     private Date endDate;
+    private Boolean isInterestActive;
 }
