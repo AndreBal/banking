@@ -14,9 +14,11 @@ public class Main {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(BankingServer.class);
 
-    public static void main(String[] args) {
+    public static void main(String[] args){
+
         URI baseUri = UriBuilder.fromUri("http://0.0.0.0/").port(8080).build();
         ResourceConfig config = new ResourceConfig(BankingServer.class);
+
         GrizzlyHttpServerFactory.createHttpServer(baseUri, config);
         LOGGER.debug("Server started successfully at " + baseUri);
     }

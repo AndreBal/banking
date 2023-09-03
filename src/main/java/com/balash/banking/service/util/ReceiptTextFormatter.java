@@ -1,0 +1,37 @@
+package com.balash.banking.service.util;
+
+import com.balash.banking.model.Transaction;
+
+import java.text.SimpleDateFormat;
+
+public class ReceiptTextFormatter {
+
+    private Utils utils;
+    private final static SimpleDateFormat DATE_FORMATTER = new SimpleDateFormat("yyyy-MM-dd");
+    private final static SimpleDateFormat TIME_FORMATTER = new SimpleDateFormat("HH:mm:ss");
+
+    public ReceiptTextFormatter(){
+        this.utils = new Utils();
+    }
+
+    public String TransactionReceipt(Transaction transaction){
+        String dateAsString = DATE_FORMATTER.format(transaction.getTransactionDate());
+        String timeAsString = TIME_FORMATTER.format(transaction.getTransactionDate());
+        String moneyString = utils.convertToDollarsAndCents(transaction.getAmount());
+        StringBuilder receipt = new StringBuilder();
+        receipt.append("----------------------------------------------\n");
+        receipt.append("|              Банковский Чек                |\n");
+        receipt.append(String.format("| Чек: %37s |\n", transaction.getId()));
+        receipt.append(String.format("| %s %31s |\n",dateAsString,timeAsString));
+        receipt.append(String.format("| Тип транзакции: %26s |\n", transaction.getTransactionType().getRussianTranslation()));
+        receipt.append(String.format("| Банк отправителя: %24s |\n", transaction.getDonorAccount().getBank().getName()));
+        receipt.append(String.format("| Банк получателя: %25s |\n", transaction.getRecipientAccount().getBank().getName()));
+        receipt.append(String.format("| Счёт отправителя: %24s |\n", transaction.getDonorAccount().getId()));
+        receipt.append(String.format("| Счёт получателя: %25s |\n", transaction.getRecipientAccount().getId()));
+        receipt.append(String.format("| Сумма: %35s |\n", moneyString+" "+transaction.getDonorAccount().getCurrency()));
+        receipt.append("----------------------------------------------\n");
+        System.out.println(receipt);
+        return receipt.toString();
+    }
+
+}

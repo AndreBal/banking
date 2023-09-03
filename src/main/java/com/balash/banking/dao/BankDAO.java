@@ -21,7 +21,11 @@ public class BankDAO {
         this.connection = ConnectionProvider.getConnection();
     }
 
-    public void createBank(Bank bank) throws SQLException {
+    public BankDAO(Connection connection) throws SQLException {
+        this.connection = connection;
+    }
+
+    public void insertBank(Bank bank) throws SQLException {
         String sql = SQL_INSERT;
         try (PreparedStatement statement = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             statement.setString(1, bank.getName());

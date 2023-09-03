@@ -26,7 +26,11 @@ public class UserDAO {
         this.connection = ConnectionProvider.getConnection();
     }
 
-    public void createUser(User user) throws SQLException {
+    public UserDAO(Connection connection) throws SQLException {
+        this.connection = connection;
+    }
+
+    public void insertUser(User user) throws SQLException {
         try (PreparedStatement statement = connection.prepareStatement(SQL_INSERT, Statement.RETURN_GENERATED_KEYS)) {
             statement.setString(1, user.getUsername());
             statement.setString(2, user.getEmail());
