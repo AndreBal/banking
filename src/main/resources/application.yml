@@ -1,0 +1,7 @@
+appUrl: http://0.0.0.0:8080/
+
+interestCheckPeriod: 30
+
+jdbcUrl: jdbc:postgresql://localhost:5432/banking
+dbUsername: postgres
+dbPassword: 1234

@@ -1,5 +1,6 @@
 package com.balash.banking;
 
+import com.balash.banking.config.AppConfig;
 import com.balash.banking.server.BankingServer;
 import com.balash.banking.service.interest.InterestCounter;
 import org.slf4j.Logger;
@@ -21,7 +22,9 @@ public class Main {
 
     public static void main(String[] args) {
 
-        URI baseUri = UriBuilder.fromUri("http://0.0.0.0/").port(8080).build();
+        AppConfig appConfig = AppConfig.getInstance();
+        String appUrl = appConfig.getAppUrl();
+        URI baseUri = UriBuilder.fromUri(appUrl).build();
         ResourceConfig config = new ResourceConfig(BankingServer.class);
 
         GrizzlyHttpServerFactory.createHttpServer(baseUri, config);
@@ -36,7 +39,7 @@ public class Main {
                 } catch (SQLException e) {
                     LOGGER.error("Interest Counter encountered error during scheduled runtime with message "+e.getMessage(),e);
                 }
-            }, 0, 30, TimeUnit.SECONDS);
+            }, 0, appConfig.getInterestCheckPeriod(), TimeUnit.SECONDS);
             LOGGER.debug("Interest Counter scheduled successfully");
         }catch (SQLException e){
             LOGGER.error("Interest Counter error during startup with message "+e.getMessage(),e);

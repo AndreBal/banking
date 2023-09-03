@@ -1,5 +1,6 @@
 package com.balash.banking.dao.connection;
 
+import com.balash.banking.config.AppConfig;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 
@@ -12,10 +13,15 @@ public class ConnectionProvider {
     private static final DataSource dataSource;
 
     static {
+        AppConfig appConfig = AppConfig.getInstance();
+        String jdbcUrl = appConfig.getJdbcUrl();
+        String dbUsername = appConfig.getDbUsername();
+        String dbPassword = appConfig.getDbPassword();
+
         HikariConfig config = new HikariConfig();
-        config.setJdbcUrl("jdbc:postgresql://localhost:5432/banking");
-        config.setUsername("postgres");
-        config.setPassword("1234");
+        config.setJdbcUrl(jdbcUrl);
+        config.setUsername(dbUsername);
+        config.setPassword(dbPassword);
 
         dataSource = new HikariDataSource(config);
     }
