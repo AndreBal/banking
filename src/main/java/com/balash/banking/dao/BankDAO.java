@@ -77,7 +77,7 @@ public class BankDAO {
                 }
             }
         }
-        return null; // Bank not found
+        return null;
     }
 
     public void updateBank(Bank bank) throws SQLException {
