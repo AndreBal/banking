@@ -21,6 +21,9 @@ public class BankingServer {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(BankingServer.class);
     private static final String UNKNOWN_ERROR = "Unnknown error";
+    private static final String DONOR_NAME = "donor";
+    private static final String RECIPIENT_NAME = "recipient";
+    private static final String AMOUNT_NAME = "amount";
 
     private TransactionService transactionService = null;
 
@@ -34,7 +37,7 @@ public class BankingServer {
     @Path("/transfer/{donor}/{recipient}/{amount}")
     @PUT
     @Produces(MediaType.TEXT_PLAIN + "; charset=utf-8")
-    public Response transfer(@PathParam("donor") String donor, @PathParam("recipient") String recipient, @PathParam("amount") String amount) {
+    public Response transfer(@PathParam(DONOR_NAME) String donor, @PathParam(RECIPIENT_NAME) String recipient, @PathParam(AMOUNT_NAME) String amount) {
         String result = UNKNOWN_ERROR;
         try {
             TransactionService transactionService = getTransactionService();
@@ -49,7 +52,7 @@ public class BankingServer {
     @Path("/deposit/{recipient}/{amount}")
     @PUT
     @Produces(MediaType.TEXT_PLAIN + "; charset=utf-8")
-    public Response deposit(@PathParam("recipient") String recipient, @PathParam("amount") String amount) {
+    public Response deposit(@PathParam(RECIPIENT_NAME) String recipient, @PathParam(AMOUNT_NAME) String amount) {
         String result = UNKNOWN_ERROR;
         try {
             TransactionService transactionService = getTransactionService();
@@ -64,7 +67,7 @@ public class BankingServer {
     @Path("/withdraw/{donor}/{amount}")
     @PUT
     @Produces(MediaType.TEXT_PLAIN + "; charset=utf-8")
-    public Response withdrawal(@PathParam("donor") String donor, @PathParam("amount") String amount) {
+    public Response withdrawal(@PathParam(DONOR_NAME) String donor, @PathParam(AMOUNT_NAME) String amount) {
         String result = UNKNOWN_ERROR;
         try {
             TransactionService transactionService = getTransactionService();
@@ -74,22 +77,6 @@ public class BankingServer {
             LOGGER.error(e.getMessage(), e);
         }
         return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(result).build();
-    }
-
-
-    @Path("/users")
-    @GET
-    @Produces(MediaType.APPLICATION_JSON)
-    public String getUsers() {
-        try {
-            UserDAO userDao = UserDAO.getInstance();
-            String users = Arrays.toString(userDao.getAllUsers().toArray());
-            LOGGER.error(users);
-            return users;
-        } catch (Exception e) {
-            LOGGER.error(e.getMessage(), e);
-        }
-        return "Error";
     }
 
 }
