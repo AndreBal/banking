@@ -1,0 +1,36 @@
+version: '3'
+
+services:
+  postgres:
+    image: postgres
+    container_name: bankingdb
+    environment:
+      POSTGRES_PASSWORD: 1234
+      POSTGRES_USER: customName
+      POSTGRES_HOST_AUTH_METHOD: trust
+      POSTGRES_DB: "bankingdbo"
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      backend:
+        aliases:
+          - "database"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+  banking-service:
+    image: openjdk:17-oracle
+    container_name: banking-container
+    working_dir: /app
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./build/libs/banking-1.0-SNAPSHOT-all.jar:/app/app.jar
+    command: ["java", "-jar", "/app/app.jar"]
+networks:
+  backend:
+    driver: bridge
