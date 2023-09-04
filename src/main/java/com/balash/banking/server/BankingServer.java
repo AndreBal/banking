@@ -1,19 +1,12 @@
 package com.balash.banking.server;
 
-import com.balash.banking.dao.UserDAO;
-import com.balash.banking.dao.connection.ConnectionProvider;
 import com.balash.banking.service.TransactionService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-
-import javax.sql.DataSource;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import java.sql.Connection;
-import java.sql.SQLException;
-import java.util.Arrays;
 
 
 @Path("/banking")
